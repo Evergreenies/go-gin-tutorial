@@ -30,20 +30,17 @@ func (n *NotesService) GetNotesService() []Note {
 	return data
 }
 
-func (n *NotesService) CreateNotesService() Note {
-	data := Note{
-		ID:   3,
-		Name: "Note 3",
+func (n *NotesService) CreateNotesService(title string, status bool) (*internal.Notes, error) {
+	note := &internal.Notes{
+		Title:  title,
+		Status: status,
 	}
 
-	err := n.db.Create(&internal.Notes{
-		ID:     5,
-		Title:  "Note 5",
-		Status: false,
-	})
-	if err != nil {
+	if err := n.db.Create(note).Error; err != nil {
 		log.Printf("%#v\n", err)
+
+		return nil, err
 	}
 
-	return data
+	return note, nil
 }

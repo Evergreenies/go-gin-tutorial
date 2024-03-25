@@ -30,10 +30,34 @@ func (n *NotesController) GetNotes() gin.HandlerFunc {
 }
 
 func (n *NotesController) CreateNotes() gin.HandlerFunc {
+	type NotePayload struct {
+		Title  string `json:"title"`
+		Status bool   `json:"status"`
+	}
+
 	return func(ctx *gin.Context) {
+		var notePayload NotePayload
+
+		if err := ctx.BindJSON(&notePayload); err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"message": "error while parsing payload",
+				"error":   err.Error(),
+			})
+
+			return
+		}
+
+		data, err := n.notesService.CreateNotesService(notePayload.Title, notePayload.Status)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": "error while saving note",
+				"error":   err.Error(),
+			})
+		}
+
 		ctx.JSON(http.StatusOK, gin.H{
-			"message": "note created",
-			"data":    n.notesService.CreateNotesService(),
+			"message": "note saved successfully.",
+			"data":    data,
 		})
 	}
 }
