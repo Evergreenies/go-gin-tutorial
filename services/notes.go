@@ -21,13 +21,14 @@ func (n *NotesService) InitService(database *gorm.DB) {
 	n.db.AutoMigrate(&internal.Notes{})
 }
 
-func (n *NotesService) GetNotesService() []Note {
-	data := []Note{
-		{ID: 1, Name: "Note 1"},
-		{ID: 2, Name: "Note 2"},
+func (n *NotesService) GetNotesService(status bool) ([]*internal.Notes, error) {
+	var notes []*internal.Notes
+
+	if err := n.db.Where("status = ?", status).Find(&notes).Error; err != nil {
+		return nil, err
 	}
 
-	return data
+	return notes, nil
 }
 
 func (n *NotesService) CreateNotesService(title string, status bool) (*internal.Notes, error) {
