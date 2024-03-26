@@ -45,3 +45,36 @@ func (n *NotesService) CreateNotesService(title string, status bool) (*internal.
 
 	return note, nil
 }
+
+func (n *NotesService) UpdateNoteSevice(id int, title string, status bool) (*internal.Notes, error) {
+	var note *internal.Notes
+
+	if err := n.db.Where("id = ?", id).First(&note).Error; err != nil {
+		return nil, err
+	}
+
+	note.Title = title
+	note.Status = status
+
+	if err := n.db.Save(&note).Error; err != nil {
+		log.Println("unable to update note, %v", err)
+		return nil, err
+	}
+
+	return note, nil
+}
+
+func (n *NotesService) DeleteNoteService(id int) error {
+	var note *internal.Notes
+
+	if err := n.db.Where("id = ?", id).First(&note).Error; err != nil {
+		return err
+	}
+
+	if err := n.db.Where("id = ?", id).Delete(&note).Error; err != nil {
+		log.Println("some error while deleting note, \n", err)
+		return err
+	}
+
+	return nil
+}
