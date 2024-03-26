@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	internal "github.com/evergreenies/go-gin-tutorial/internal/model"
+	"github.com/evergreenies/go-gin-tutorial/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -29,12 +30,16 @@ func (a *AuthServices) Login(email *string, password *string) (*internal.User, e
 	}
 
 	var user internal.User
-	if err := a.db.Where("email = ?", email).Where("password = ?", password).Find(&user).Error; err != nil {
+	if err := a.db.Where("email = ?", email).Find(&user).Error; err != nil {
 		return nil, err
 	}
 
 	if user.Email == "" {
 		return nil, errors.New(fmt.Sprintf("no user found with email=%s", *email))
+	}
+
+	if !utils.CheckPasswordHash(*password, user.Password) {
+		return nil, errors.New("incorrect password")
 	}
 
 	return &user, nil
@@ -53,9 +58,14 @@ func (a *AuthServices) Register(email *string, password *string) (*internal.User
 		return nil, errors.New(fmt.Sprintf("user already exists with this email=%s", *email))
 	}
 
+	hashedPassword, err := utils.HashPassword(*password)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("error hashing password, %v", err))
+	}
+
 	var user internal.User
 	user.Email = *email
-	user.Password = *password
+	user.Password = hashedPassword
 
 	if err := a.db.Create(&user).Error; err != nil {
 		return nil, err
