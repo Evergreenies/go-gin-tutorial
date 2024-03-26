@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"fmt"
 
 	internal "github.com/evergreenies/go-gin-tutorial/internal/model"
 	"gorm.io/gorm"
@@ -32,6 +33,10 @@ func (a *AuthServices) Login(email *string, password *string) (*internal.User, e
 		return nil, err
 	}
 
+	if user.Email == "" {
+		return nil, errors.New(fmt.Sprintf("no user found with email=%s", *email))
+	}
+
 	return &user, nil
 }
 
@@ -44,6 +49,10 @@ func (a *AuthServices) Register(email *string, password *string) (*internal.User
 		return nil, errors.New("you must have to provide password")
 	}
 
+	if a.IsUserExist(email) {
+		return nil, errors.New(fmt.Sprintf("user already exists with this email=%s", *email))
+	}
+
 	var user internal.User
 	user.Email = *email
 	user.Password = *password
@@ -53,4 +62,17 @@ func (a *AuthServices) Register(email *string, password *string) (*internal.User
 	}
 
 	return &user, nil
+}
+
+func (a *AuthServices) IsUserExist(email *string) bool {
+	var user *internal.User
+	if err := a.db.Where("email = ?", email).Find(&user).Error; err != nil {
+		return false
+	}
+
+	if user.Email == "" {
+		return false
+	}
+
+	return true
 }
