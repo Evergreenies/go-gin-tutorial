@@ -26,5 +26,8 @@ func main() {
 	notesController.InitController(*notesService)
 	notesController.InitRoutes(router)
 
+	authController := controllers.InitAuthController()
+	authController.InitAuthRoutes(router)
+
 	router.Run(":8080")
 }
