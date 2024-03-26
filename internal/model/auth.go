@@ -1,8 +1,8 @@
 package internal
 
 type User struct {
-	ID       string `json:"id" gorm:"primaryKey"`
-	Email    string `json:"email"`
+	ID       int    `json:"id" gorm:"primaryKey,autoIncrement"`
+	Email    string `json:"email" gorm:"unique"`
 	Password string `json:"password"`
 }
 

@@ -12,6 +12,7 @@ type AuthServices struct {
 }
 
 func InitAuthService(db *gorm.DB) *AuthServices {
+	db.AutoMigrate(&internal.User{})
 	return &AuthServices{
 		db: db,
 	}
