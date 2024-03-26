@@ -2,6 +2,7 @@ package services
 
 import (
 	"log"
+	"strconv"
 
 	internal "github.com/evergreenies/go-gin-tutorial/internal/model"
 	"gorm.io/gorm"
@@ -21,10 +22,22 @@ func (n *NotesService) InitService(database *gorm.DB) {
 	n.db.AutoMigrate(&internal.Notes{})
 }
 
-func (n *NotesService) GetNotesService(status bool) ([]*internal.Notes, error) {
+func (n *NotesService) GetNotesService(id int, status string) ([]*internal.Notes, error) {
 	var notes []*internal.Notes
+	query := n.db
 
-	if err := n.db.Where("status = ?", status).Find(&notes).Error; err != nil {
+	if id != 0 {
+		query = query.Where("id = ?", id)
+	}
+
+	if status != "" {
+		parsedStatus, err := strconv.ParseBool(status)
+		if err == nil {
+			query = query.Where("status = ?", parsedStatus)
+		}
+	}
+
+	if err := query.Find(&notes).Error; err != nil {
 		return nil, err
 	}
 

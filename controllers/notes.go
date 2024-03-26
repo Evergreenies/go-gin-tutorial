@@ -13,26 +13,42 @@ type NotesController struct {
 	notesService services.NotesService
 }
 
-func (n *NotesController) InitNotesControllerRoutes(router *gin.Engine, notesService services.NotesService) {
+func (n *NotesController) InitController(noteService services.NotesService) *NotesController {
+	n.notesService = noteService
+
+	return n
+}
+
+func (n *NotesController) InitRoutes(router *gin.Engine) {
 	notes := router.Group("/notes")
 
 	notes.GET("/", n.GetNotes())
 	notes.POST("/", n.CreateNotes())
 	notes.PUT("/", n.UpdateNotes())
 	notes.DELETE("/:id", n.DeleteNote())
-
-	n.notesService = notesService
 }
 
 func (n *NotesController) GetNotes() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		status := ctx.Query("status")
-		parsedStatus, err := strconv.ParseBool(status)
-		if err != nil {
-			log.Println("error parsing status to filter query, %v\n", err.Error())
-		}
+		id := ctx.Query("id")
+		parsedId := 0
+		if id != "" {
+			idAfterParsed, err := strconv.Atoi(id)
+			if err != nil {
+				ctx.JSON(http.StatusBadRequest, gin.H{
+					"message": "invalid `id` query parameter.",
+					"error":   err.Error(),
+				})
 
-		notes, err := n.notesService.GetNotesService(parsedStatus)
+				return
+			}
+
+			parsedId = idAfterParsed
+		}
+		log.Printf("filter query based on conditions id=%d, status=%v\n", parsedId, status)
+
+		notes, err := n.notesService.GetNotesService(parsedId, status)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{
 				"message": "some error while fetching all notes.",
