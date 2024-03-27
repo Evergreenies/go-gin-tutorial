@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -49,7 +50,7 @@ func (j *JWTPayload) Valid() error {
 }
 
 func NewJWT() (JWT, error) {
-	const secret = "f610235f-6039-4ca8-86b5-7b05081f51ca"
+	secret := os.Getenv("JWT_SECRET")
 	if len(secret) < 32 {
 		return nil, ErrSecretKeyTooShort
 	}
