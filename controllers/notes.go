@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/evergreenies/go-gin-tutorial/internal/middlewares"
 	"github.com/evergreenies/go-gin-tutorial/services"
 	"github.com/gin-gonic/gin"
 )
@@ -21,6 +22,8 @@ func (n *NotesController) InitController(noteService services.NotesService) *Not
 
 func (n *NotesController) InitRoutes(router *gin.Engine) {
 	notes := router.Group("/notes")
+
+	notes.Use(middlewares.VerifyJWTToken)
 
 	notes.GET("/", n.GetNotes())
 	notes.POST("/", n.CreateNotes())

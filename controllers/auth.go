@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/evergreenies/go-gin-tutorial/internal/utils"
 	"github.com/evergreenies/go-gin-tutorial/services"
 	"github.com/gin-gonic/gin"
 )
@@ -85,9 +87,34 @@ func (a *AuthController) Login() gin.HandlerFunc {
 			return
 		}
 
+		newJwt, err := utils.NewJWT()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": "error while generating jwt token",
+				"error":   err.Error(),
+			})
+
+			return
+		}
+
+		userPayload := utils.User{
+			ID:    user.ID,
+			Email: user.Email,
+		}
+		payload, err := newJwt.CreateToken(&userPayload, 24*time.Hour)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": "error while generating jwt token",
+				"error":   err.Error(),
+			})
+
+			return
+		}
+
 		ctx.JSON(http.StatusOK, gin.H{
 			"message": "authentication successful",
 			"data":    user,
+			"token":   payload.Token,
 		})
 	}
 }
